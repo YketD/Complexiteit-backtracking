@@ -46,7 +46,8 @@ public class MazeSolver {
     public boolean solve(Doolhof doolhof){
         currentState = new State(pawnone.getPos(),pawntwo.getPos());
 
-        while (pawnone.getPos() != 22 || pawntwo.getPos() != 22) {
+        while (pawnone.getPos() != 23 || pawntwo.getPos() != 23) {
+            System.out.println(pawnone.getPos() + "  "  + pawntwo.getPos());
             State newState = null;
             newState = getPath(pawnone, pawntwo);
             if (newState == null) {
@@ -60,6 +61,7 @@ public class MazeSolver {
                 currentState = newState;
                 pawnone = doolhof.getTile(newState.to1 - 1);
                 pawntwo = doolhof.getTile(newState.to2 - 1);
+
             }
         }
         return true;

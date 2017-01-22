@@ -81,6 +81,7 @@ public class Doolhof {
         tiles.get(7).addPath(new Path(COLOR.PINK, 3));
 
         tiles.get(8).addPath(new Path(COLOR.GREEN, 4));
+        tiles.get(8).addPath(new Path(COLOR.BLACK, 14));
 
         tiles.get(9).addPath(new Path(COLOR.GREEN, 15));
 
