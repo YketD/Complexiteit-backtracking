@@ -1,6 +1,8 @@
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Stack;
 
 /**
  * Created by yketd on 22-12-2016.
@@ -9,11 +11,12 @@ public class MazeSolver {
     Doolhof doolhof;
     Tile pawnone, pawntwo;
     boolean moveWorked = true;
+    State currentState;
     int historysize = 0;
     boolean solved = false;
     int index = 0;
 
-    ArrayList<State> history = new ArrayList<>();
+    Stack<State> history = new Stack<>();
     ArrayList<State> wrongStates = new ArrayList<>();
 
     public MazeSolver(Doolhof doolhof){
@@ -32,25 +35,31 @@ public class MazeSolver {
         if (solve(doolhof)){
             System.out.println("solved!");
         }   else{
-            System.out.println("failed to solve..");
+
+            for (State state : wrongStates){
+                System.out.println(state.getTo1() + " & " +  state.getTo2());
+            }
         }
 
     }
 
     public boolean solve(Doolhof doolhof){
-        while (pawnone.getPos() != 23 || pawntwo.getPos() != 23) {
+        currentState = new State(pawnone.getPos(),pawntwo.getPos());
+
+        while (pawnone.getPos() != 22 || pawntwo.getPos() != 22) {
             State newState = null;
             newState = getPath(pawnone, pawntwo);
             if (newState == null) {
 
                 boolean failed = revertPosition();
                 if (failed){
-                    return failed;
+                    return false;
                 }
             } else {
-//                System.out.println("moving.. pawn one go to: " + newState.to1 + " pawn two go to "+ newState.to2);
-                pawnone = doolhof.getTile(newState.to1-1);
-                pawntwo = doolhof.getTile(newState.to2-1);
+                history.push(currentState);
+                currentState = newState;
+                pawnone = doolhof.getTile(newState.to1 - 1);
+                pawntwo = doolhof.getTile(newState.to2 - 1);
             }
         }
         return true;
@@ -60,19 +69,15 @@ public class MazeSolver {
     }
 
     private boolean revertPosition() {
-        historysize--;
-        if (!(history.size() <0)){
-            State falseState = new State(pawnone.getPos(), pawntwo.getPos());
-            State oldState = history.get(historysize);
-            wrongStates.add(falseState);
+        if (!(history.size() <1)){
+            State falseState = currentState;
+            wrongStates.add(currentState);
+            currentState = history.pop();
 
+            System.out.println("reverting..: " + pawnone.getPos() + " -> " + currentState.getTo1()  + " & " + pawntwo.getPos() + "->" + currentState.getTo2());
 
-//            history.remove(history.size() - 1);
-//            System.out.println("history size: " + historysize);
-            System.out.println("reverting..: " + falseState.getTo1() + " -> " + oldState.getTo1()  + " & " + falseState.getTo2() + "->" + oldState.getTo2());
-
-            pawnone = doolhof.getTile(oldState.to1-1);
-            pawntwo = doolhof.getTile(oldState.to2-1);
+            pawnone = doolhof.getTile(currentState.to1 - 1);
+            pawntwo = doolhof.getTile(currentState.to2 - 1);
             return false;
         }
         else{
@@ -101,7 +106,9 @@ public class MazeSolver {
                 State state = new State(path.getDest(), p2.getPos());
                 System.out.print("");
                 boolean goodpath = true;
-                for (State state1 : history) {
+                Iterator iterator = history.iterator();
+                while (iterator.hasNext()){
+                    State state1 = (State) iterator.next();
                     if (!checkLegalState(state1, state)) {
                         goodpath = false;
                     }
@@ -112,9 +119,7 @@ public class MazeSolver {
                     }
                 }
                 if (goodpath){
-                    System.out.println("state: " + pawntwo.getPos() + "->" + state.getTo1()  + " & " + pawnone.getPos() + "->" + state.getTo2());
-                    history.add(state);
-                    historysize++;
+                    System.out.println("state: " + pawnone.getPos() + "->" + state.getTo1()  + " & " + pawntwo.getPos() + "->" + state.getTo2());
                     return state;
                 }
             }
@@ -123,7 +128,9 @@ public class MazeSolver {
             State state = new State(p1.getPos() , path.getDest());
 
             boolean goodpath = true;
-            for (State state1 : history) {
+            Iterator iterator = history.iterator();
+            while (iterator.hasNext()){
+                State state1 = (State) iterator.next();
                 if (!checkLegalState(state1, state)) {
                     goodpath = false;
                 }
@@ -135,8 +142,6 @@ public class MazeSolver {
             }
             if (goodpath){
                 System.out.println("state: " + pawnone.getPos() + "->" + state.getTo1()  + " & " + pawntwo.getPos() + "->" + state.getTo2());
-                history.add(state);
-                historysize++;
                 return state;
 
             }
